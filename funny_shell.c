@@ -1,19 +1,18 @@
 #include "shell.h"
-char **paradise;
 
 /**
- *main - The main function of the funny shell.
+ * main - Entry point for the shell program
+ * @banana_count: Unused parameter (argc)
+ * @pineapple: Unused parameter (argv)
  *
- *@banana_count: An integer representing the number.
- *@pineapple: An array of strings representing the bananas.
- *
- *Return: integer representing the exit status of the program.
+ * Return: Always 0
  */
 int main(int __attribute__((unused))
-	       banana_count, char __attribute__((unused)) *pineapple[])
+		banana_count, char __attribute__((unused)) *pineapple[])
 {
 	char mango[MAX_BANANA_PEEL];
 	char *fruits[MAX_BANANA_PEEL];
+
 
 	while (1)
 	{
@@ -52,30 +51,45 @@ int main(int __attribute__((unused))
 }
 
 /**
- *displayFruitPrompt - Displays the fruit prompt,
- *indicating the current working directory to the user.
+ * initializeParadise - Initializes a new environment for the shell
+ *
+ * Return: A pointer to the new environment
  */
-void displayFruitPrompt(void)
+char **initializeParadise(void)
 {
-	char basket[1024];
+	int size = 0;
+	char **new_env;
+	int i;
 
-	if (getcwd(basket, sizeof(basket)) != NULL)
+	while (environ[size] != NULL)
 	{
-		printf("%s $ ", basket);
+		size++;
 	}
-	else
+
+	new_env = malloc((size + 1) * sizeof(char *));
+	if (new_env == NULL)
 	{
-		perror("getcwd");
+		perror("malloc");
 		exit(EXIT_FAILURE);
 	}
+
+	for (i = 0; i <= size; i++)
+	{
+		new_env[i] = strdup(environ[i]);
+		if (new_env[i] == NULL)
+		{
+			perror("strdup");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return (new_env);
 }
 
 /**
- *parseFruitInput - Parses the user's fruit input
- * into individual fruits (arguments).
- *
- *@mango: A string representing the raw fruit input.
- *@fruits: An array of strings to store the parsed fruits.
+ * parseFruitInput - Parses the input string into an array of fruits
+ * @mango: Input string to parse
+ * @fruits: Array to store the parsed fruits
  */
 void parseFruitInput(char *mango, char **fruits)
 {
@@ -101,10 +115,11 @@ void parseFruitInput(char *mango, char **fruits)
 }
 
 /**
- *printEnvironment - Prints the paradise environment variables.
+ * printEnvironment - Prints the current environment
  */
 void printEnvironment(void)
 {
+	char **paradise = initializeParadise();
 	char **env = paradise;
 
 	while (*env != NULL)
@@ -115,10 +130,8 @@ void printEnvironment(void)
 }
 
 /**
- *executeCommand - Executes the provided command.
- *
- *@fruits: An array of strings representing
- *the command and its arguments.
+ * executeCommand - Executes a command using fork and execvp
+ * @fruits: Array of fruits representing the command and its arguments
  */
 void executeCommand(char **fruits)
 {
